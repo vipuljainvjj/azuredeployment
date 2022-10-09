@@ -23,4 +23,9 @@ public class TextController {
         return "Value Does Not Exist";
     }
 
+    @GetMapping("/")
+    public String defaultEntry() {
+        return "You are on Welcome Page.";
+    }
+
 }
