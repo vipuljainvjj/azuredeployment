@@ -27,6 +27,9 @@ public class TextController {
     @Value("${logicAppUrl}")
     String logicAppUrl;
 
+    @Value("${filename}")
+    String filename;
+
     @Autowired
     RestTemplate restTemplate;
 
@@ -47,6 +50,7 @@ public class TextController {
     @GetMapping("/get-file-content")
     public String getFileContent() throws URISyntaxException {
         //return restTemplate.exchange(logicAppUrl, HttpMethod.GET, null, String.class).getBody();
+        // this is a Rest call to logic App
         URI uri = new URI(logicAppUrl);
         return restTemplate.getForEntity(uri, String.class).getBody();
     }
@@ -67,12 +71,14 @@ public class TextController {
     public String getManagedKeyVault() throws URISyntaxException {
         // get key vault secret from Azure
         // User have Role to read secret, tested from logic App
-        String keyVaultUri = "https://keyvaultvjj.vault.azure.net/";
-        SecretClient secretClient = new SecretClientBuilder().vaultUrl(keyVaultUri)
-                                                             .credential(new ManagedIdentityCredentialBuilder().build())
-                                                             .buildClient();
-        KeyVaultSecret retrievedSecret = secretClient.getSecret("filename");
-        return retrievedSecret.getValue();
+        System.out.println(filename);
+//        String keyVaultUri = "https://keyvaultvjj.vault.azure.net/";
+//        SecretClient secretClient = new SecretClientBuilder().vaultUrl(keyVaultUri)
+//                                                             .credential(new ManagedIdentityCredentialBuilder().build())
+//                                                             .buildClient();
+//        KeyVaultSecret retrievedSecret = secretClient.getSecret("filename");
+//        return retrievedSecret.getValue();
+        return filename;
     }
 
 }
