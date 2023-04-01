@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-rest-template-app
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: my-rest-template-label
+    spec:
+      containers:
+        - name: my-rest-template-cont
+          image: my-rest-template-image
