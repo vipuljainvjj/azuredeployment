@@ -11,4 +11,4 @@ spec:
     spec:
       containers:
         - name: my-rest-template-cont
-          image: my-rest-template-image
+          image: vjkubernetesregistry.azurecr.io/image-workflow-1680370339289'
