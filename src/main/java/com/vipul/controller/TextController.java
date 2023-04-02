@@ -1,16 +1,14 @@
 package com.vipul.controller;
 
+import com.azure.identity.DefaultAzureCredential;
 import com.azure.identity.DefaultAzureCredentialBuilder;
-import com.azure.identity.ManagedIdentityCredentialBuilder;
 import com.azure.security.keyvault.secrets.SecretClient;
 import com.azure.security.keyvault.secrets.SecretClientBuilder;
 import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
+import com.azure.storage.blob.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpMethod;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
@@ -56,7 +54,7 @@ public class TextController {
     }
 
     @GetMapping("/get-default-secret")
-    public String getDefaultKeyVault() throws URISyntaxException {
+    public String getDefaultKeyVault() {
         // get key vault secret from Azure
         // User have Role to read secret, tested from logic App
         String keyVaultUri = "https://keyvaultvjj.vault.azure.net/";
@@ -79,6 +77,44 @@ public class TextController {
 //        KeyVaultSecret retrievedSecret = secretClient.getSecret("filename");
 //        return retrievedSecret.getValue();
         return filename;
+    }
+
+    @PostMapping("/get-blob-properties")
+    public String getBlobProperties(@RequestParam String storageName, @RequestParam String containerName, @RequestParam String blobName) {
+        String storageAccountUri = "https://" + storageName + ".blob.core.windows.net";
+        String containerUri = storageAccountUri + "/" + containerName;
+        String blobUri = containerUri + "/" + blobName;
+
+        BlobClientBuilder blobClientBuilder = new BlobClientBuilder();
+        BlobClient blobClient = blobClientBuilder.endpoint(blobUri).buildClient();
+
+        return blobClient.getBlobUrl();
+    }
+
+    @PostMapping("/copy-blob")
+    public String copyBlob(@RequestParam String storageName, @RequestParam String containerName,
+                           @RequestParam String blobName) {
+        String storageAccountUri = "https://" + storageName + ".blob.core.windows.net/";
+        String containerUri = storageAccountUri + containerName + "/";
+        String copyingContainerName = "copyfilecontainer";
+
+        DefaultAzureCredential defaultCredential = new DefaultAzureCredentialBuilder().build();
+
+        BlobServiceClient blobServiceClient = new BlobServiceClientBuilder()
+                                                        .endpoint(storageAccountUri)
+                                                        .credential(defaultCredential)
+                                                        .buildClient();
+
+        BlobContainerClient originalBlobContainerClient = blobServiceClient.getBlobContainerClient(containerName);
+        BlobContainerClient copyingBlobContainerClient = blobServiceClient.getBlobContainerClient(copyingContainerName);
+
+        BlobClient originalBlobClient = originalBlobContainerClient.getBlobClient(blobName);
+        BlobClient copyingBlobClient = copyingBlobContainerClient.getBlobClient(originalBlobClient.getBlobName());
+
+        // get the reference of copying container and from that get reference of BLobClient with filename
+        copyingBlobClient.copyFromUrl(originalBlobClient.getBlobUrl());
+
+        return originalBlobClient.getProperties().toString();
     }
 
 }
